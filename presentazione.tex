@@ -1,0 +1,760 @@
+\documentclass{beamer}
+\usetheme[faculty=phil]{fibeamer}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel} 
+\title{XML Schema}
+\subtitle{Linguaggio di descrizione documenti XML}
+\author{Luca Bartoli}
+\usepackage{ragged2e}  % `\justifying` text
+\usepackage{booktabs}  % Tables
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{tikz}      % Diagrams
+\usetikzlibrary{calc, shapes, backgrounds}
+\usepackage{amsmath, amssymb}
+\usepackage{url}       % `\url`s
+\usepackage{listings}  % Code listings
+\usepackage{color}
+\usepackage{transparent}
+ 
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{lightblue}{rgb}{0.0,0.0,0.9}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+\definecolor{darkred}{rgb}{0.6,0.0,0.0}
+
+\lstdefinelanguage{XML}
+{
+  morestring=[s][\color{mauve}]{"}{"},
+  morestring=[s][\color{black}]{>}{<},
+  morecomment=[s]{<?}{?>},
+  morecomment=[s][\color{dkgreen}]{<!--}{-->},
+  stringstyle=\color{black},
+  identifierstyle=\color{lightblue},
+  keywordstyle=\color{red},
+  morekeywords={xmlns,xsi,noNamespaceSchemaLocation,id,x,y,source,version,tool,transRef,roleRef,objective,eventually}% list your attributes here
+}
+
+\lstset{
+  language=XML,
+  belowskip=-1 \baselineskip,
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  showstringspaces=false,
+  backgroundcolor=\transparent{0.0},% choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=none,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                   % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title  
+  commentstyle=\color{gray}\upshape
+}
+
+
+\frenchspacing
+
+\begin{document}
+	\begin{darkframes}
+	\begin{frame}
+		
+	\begin{center}
+		\Huge{XSD}
+		\\\bigskip
+		\Large{XML Schema Definition}\\
+		\large{Luca Bartoli}
+		
+	\end{center}			
+	\end{frame}
+	\end{darkframes}
+
+  \AtBeginSection[]{% Print an outline at the beginning of sections
+    	\begin{frame}<beamer>
+      		\frametitle{Sezione \thesection}
+      		\begin{multicols}{2}
+      			\tableofcontents[
+    					sectionstyle=show/shaded,
+    					subsectionstyle=show/show/shaded,
+    					subsubsectionstyle=show/show/show/shaded
+    			]
+      		\end{multicols}
+    	\end{frame}
+    }
+
+    \section{Introduzione}
+    
+	\subsection{Scopo}
+	\begin{frame}[containsverbatim]{Aaaaaaa}
+		\framesubtitle{aaaaaaaaaaaaaaa}
+	  	\begin{block}{aaaaaaaaaaaaaaaaaah!!}
+        L'astronave \alert{ShipML} è in orbita, controllata da un complesso sistema robotizzato, che riceve in input da varie basi sulla terra file di istruzioni, che (per motivi ignoti) sono in formato XML. Ogni errore, anche piccolo, potrebbe essere fatale, e l'astronave potrebbe esplodere o spazzare via i malcapitati terrestri!
+      \end{block}
+      \end{frame}
+      \begin{frame}[containsverbatim]
+
+Un esempio di file potrebbe essere:      
+      \bigskip
+      \begin{lstlisting}
+<?xml version="1.0" encoding="utf-8"?>
+<commands>
+    <auth>
+        <user degree="5"> Luis Pollo </user>
+        <base zone="B32"> Seattle </base>
+        <password>Password12</password>
+    </auth>
+    <engine>
+        <run combust="hydrogen"> 5 </run>
+    </engine>
+    <move left="1" up="4"/>
+	\end{lstlisting}
+	\end{frame}
+	
+	\begin{frame}[containsverbatim]
+	\begin{lstlisting}
+	 <shoot weapon="laser">
+        <target>
+            <galaxy>Andromeda</galaxy>
+            <planet>KELT-2Ab</planet>
+            <coordinates>
+                <E>012-29-32</E>
+                <N>41-53-24</N>
+            </coordinates>
+        </target>
+        <target>
+            <galaxy>Milky Way</galaxy>
+            <planet>Mars</planet>
+            <coordinates>
+                <N>12-4-12</N>
+                <E>90-3-16</E>
+            </coordinates>
+        </target>
+    </shoot>
+</commands>
+	\end{lstlisting}
+	\end{frame}
+    
+    \subsection{Ben Formato}  
+    \begin{frame}{Ben Formato}
+    
+    Si ricorda che un documento XML ben formato ha le seguenti caratteristiche:
+    \begin{itemize}
+    \item Inizia con l'intestazione XML
+    \item Ha un elemento radice
+    \item A tutti i tag aperti, esclusi quelli vuoti, corrisponde il tag di chiusura
+    \item Gli elementi sono \textit{case sensitive}
+    \item Tutti gli elementi devono essere innestati correttamente.
+    \item Tutti i valori degli attributi devono essere racchiusi da virgolette
+    \item I caratteri speciali vanno riferiti tramite entità    
+	\end{itemize}       
+	\end{frame}
+    
+    \subsection{Generalità}
+    
+    \begin{frame}{Generalità}
+    In molte applicazioni risulta sufficiente che il documento sia ben formato, in altri frangenti invece occorre una validazione (come nel caso della nostra astronave!):
+    \begin{itemize}
+     \item Gli XML schema language sono linguaggi utilizzati per descrivere o porre vincoli sul contenuto di documenti XML
+     \item L' \textbf{X}ML \textbf{S}chema \textbf{D}efinition è uno schema language rilasciato dal W3C
+     \item Il linguaggio, basato a sua volta sull'XML, riproduce ed estende considerabilmente le capacità del DTD.
+     \item Ad oggi nel panorama dell'XML la maggior parte dei formati è descritta in XSD, in quanto risulta facile da imparare ed è dotato di una vasta capacità espressiva.
+    \end{itemize}
+    \end{frame}
+    
+    \begin{frame}
+    Lo scopo del Xml Schema Definition è quello di definire:
+    \begin{itemize}
+    \item Gli elementi e attributi che possono apparire in un documento
+    \item Il numero (e l'ordine) dei nodi figli
+    \item Tipi (semplici e complessi) per gli elementi e attributi
+    \item Valori di default e costanti per elementi e attributi
+    \end{itemize}\bigskip
+    Alcuni punti di forza del linguaggio sono:
+    \begin{itemize}
+    \item si può utilizzare lo stesso schema per una classe di documenti
+    \item si possono creare i propri tipi di dato derivati
+    \item è possibile specificare più schemi sullo stesso documento e dividere lo stesso schema in più file  
+    \end{itemize}
+    \end{frame}
+    
+    \subsection{Note storiche}
+    \begin{frame}{Note storiche}
+    \begin{itemize}
+    \item Pubblicato dal World Wide Web Consortium nel 2001.
+    \item Unico \textit{schema language} a raggiungere la validazione ufficiale del consorzio.
+    \item Chiamato sia \textbf{WXS} che \textbf{XSD}, ma il W3C ha adottato il secondo come nome ufficiale.
+    \item Prende chiaramente molto dal DTD e incorpora molte delle \textit{features} presenti negli vari \textit{schema language}, costituendo un buon compromesso.
+    \end{itemize}
+    \end{frame}
+    
+   \section{Sintassi} 
+	\subsection{Intestazione}
+    \begin{frame}[containsverbatim]{Intestazione}
+    \begin{itemize}
+    \item Uno schema è di per se un documento XML, perciò deve inziare con:
+    \begin{lstlisting}
+	<?xml version="1.0" encoding="utf-8"?>
+	\end{lstlisting}
+	\item Il \textit{root node}, che completa l'intestazione, e che racchiude tutto il contenuto dello schema è:
+	\begin{lstlisting}
+	<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		targetNamespace="https://www.spaceship.com"
+		xmlns="https://www.spaceship.com"
+		elementFormDefault="qualified">
+		...
+	</xs:schema>
+	\end{lstlisting}
+    \end{itemize}
+   \end{frame}
+   \begin{frame}
+   \begin{itemize}
+   \item I vari attributi sono:
+   \begin{itemize}
+   		\item \textcolor{red}{xmlns}:\textcolor{lightblue}{xs} indica che gli elementi e i tipi utilizzati nello schema sono definiti nel \textit{namespace} specificato e che vanni preceduti dal prefisso \textcolor{lightblue}{xs}
+   		\item \textcolor{lightblue}{targetNamespace} indica che gli elementi utilizzati nello schema sono definiti nel \textit{namespace} specificato (attributo opzionale)
+   		\item \textcolor{red}{xmlns} imposta il namespace di default (quando un tag non è preceduto da alcun prefisso si sottintende \textcolor{red}{xmlns}:)
+   		\item \textcolor{lightblue}{elementFormDefault} se impostato a \textcolor{mauve}{"qualified"} indica che tutti i nomi presenti nel documento devono essere preceduti da un \textit{namespace}.
+   \end{itemize}
+   \end{itemize}
+   \end{frame}
+   
+   \subsection{Elementi e Attributi}
+   \begin{frame}[containsverbatim]{Elementi e Attributi}
+   \begin{itemize}
+   \item Per dichiarare un elemento si scrive:
+   	\begin{lstlisting}
+	<xs:element name="<name>" type="<type>"/>
+	\end{lstlisting}
+	\item Analogamente, gli attributi si dichiarano con:
+   \begin{lstlisting}
+	<xs:attribute name="<name>" type="<type>"/>
+	\end{lstlisting}
+	\item Per specificare valori di default si utilizza l'attributo
+	\textcolor{lightblue}{default}
+	\item Per impostare un valore costante per un elemento si utilizza l'attributo
+	\textcolor{lightblue}{fixed}
+	\item Per rendere un attributo obbligatoria sia aggiunge \textcolor{lightblue}{use} = \textcolor{mauve}{"required"}
+   \end{itemize}
+   \end{frame}
+   	\subsection{Tipi}
+   \begin{frame}[containsverbatim]{Tipi}
+   \begin{itemize}
+   	\item l'attributo \textcolor{lightblue}{type} può assumere i valori, corrispondenti a tipi primitivi forniti dall'XSD:
+   \begin{itemize}
+    \item xs:string
+    \item xs:decimal
+    \item xs:integer
+    \item xs:boolean
+    \item xs:date
+    \item xs:time
+   \end{itemize}
+   \end{itemize}
+   \end{frame}
+   \begin{frame}[containsverbatim]
+      \begin{block}{Esempio}
+   \begin{lstlisting}
+    ...
+	<xs:element name="user" type="xs:string"/>
+	...
+	<xs:attribute name="degree" type="xs:integer" default="0" use="required"/>
+	...
+	\end{lstlisting}
+   \end{block}
+   \end{frame}
+   \subsection{Tipi Semplici}
+   \begin{frame}[containsverbatim]{Tipi Semplici}
+   \begin{itemize}
+   \item  Per specificare un nuovo tipo semplice per un elemento, che ha come base un tipo primitivo e in più dei vincoli di dominio, si può scrivere:
+    \begin{lstlisting}
+	<xs:element name="<name>">
+  		<xs:simpleType>
+    		<xs:restriction base="<primitive-type>">
+    			...
+    		</xs:restriction>
+  		</xs:simpleType>
+	</xs:element> 
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}
+	\begin{frame}[containsverbatim]
+	\begin{itemize}
+	\item Se si vuole utilizzare lo stesso tipo per più elementi ed attributi si può definire una sola volta assegnandogli un nome:
+	\begin{lstlisting}
+  	<xs:simpleType name="<type-name>">
+    	<xs:restriction base="<primitive-type>">
+    		...
+    	</xs:restriction>
+  	</xs:simpleType>
+  	
+	<xs:element name="<element-name1>" type="<type-name>" /> 
+	<xs:element name="<element-name2>" type="<type-name>" /> 
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}
+	\subsection{Restrizioni}
+	\begin{frame}[containsverbatim]{Restrizioni}
+	\begin{itemize}
+	\item Se \textcolor{lightblue}{base}=\textcolor{mauve}{"xs:integer"} allora al posto dei tre puntini si possono porre vincoli con:
+	    \begin{lstlisting}
+<xs:minInclusive value="<min-value>"/>
+<xs:maxInclusive value="<max-value>"/>
+	\end{lstlisting}
+	Ne esistono anche le varianti esclusive (\textcolor{lightblue}{maxExclusive}, \textcolor{lightblue}{minExclusive})\bigskip
+	   \item Per restringere il dominio a pochi valori predefiniti (come per gli \textit{enum}) allora al posto dei tre puntini si può utilizzare un elenco:
+   \begin{lstlisting}
+    <xs:enumeration value="<value1>"/>
+    <xs:enumeration value="<value2"/>
+    ...
+	\end{lstlisting}
+   \end{itemize}
+   \end{frame}
+   \begin{frame}[containsverbatim]
+   \begin{itemize}
+   \item Se  \textcolor{lightblue}{base}=\textcolor{mauve}{"xs:decimal"} allora al posto dei tre puntini,per specificare cifre totali e cifre dopo la virgola si può utilizzare:
+   \begin{lstlisting}
+      <xsd:totalDigits value="<total-digits>"/>
+      <xsd:fractionDigits value="<fraction-digits>"/>
+	\end{lstlisting}
+	\item Se \textcolor{lightblue}{base}=\textcolor{mauve}{"xs:string"} allora al posto dei tre puntini si possono specificare dei pattern sui quali testare la stringa, del tutto analoghi alle \textit{RegExp} in vari linguaggi di programmazione (Java, Javascript, Python...):
+	   \begin{lstlisting}
+     <xs:pattern value="<pattern-to-match>"/>
+	\end{lstlisting}
+	per vincolare la sola lunghezza:
+	  \begin{lstlisting}
+     <xs:length value="<length>"/>
+	\end{lstlisting}
+	In alternativa esiste anche \textcolor{lightblue}{maxLength} e \textcolor{lightblue}{minLength}
+   \end{itemize}
+   \end{frame}
+
+   \begin{frame}[containsverbatim]
+   \begin{block}{Esempio String}
+      \begin{lstlisting}
+     <xs:simpleType name="pswtype">
+     	<xs:restriction base="xs:string">
+     		<xs:pattern value="[a-zA-Z0-9]*[A-Z]+[a-zA-Z0-9]*[0-9]+[a-zA-Z0-9]*"/>
+     		<xs:minLength value="8"/>
+     	</xs:restriction>
+     </xs:simpleType>
+  	\end{lstlisting}
+   \end{block}
+   \end{frame}   
+   \begin{frame}[containsverbatim]
+   \begin{block}{Esempio Enum}
+      \begin{lstlisting}
+     <xs:attribute name="weapon">
+     	<xs:simpleType>
+     		<xs:restriction base="xs:string">
+     			<xs:enumeration value="laser" />
+     			<xs:enumeration value="nuke" />
+     			<xs:enumeration value="catapult" />
+     		</xs:restriction>
+     	</xs:simpleType>
+     </xs:attribute>
+	\end{lstlisting}
+   \end{block}
+   \end{frame}
+      \subsection{Tipi Complessi}
+   \begin{frame}[containsverbatim]{Tipi Complessi}
+   \begin{itemize}
+   \item Analogamente ai tipi semplici, per dichiarare un elemento complesso si può utilizzare il costrutto nel seguente modo:
+         \begin{lstlisting}
+<xs:element name="<name>">
+  <xs:complexType>
+  	...
+  </xs:complexType>
+</xs:element> 
+	\end{lstlisting}
+	   \item In alternativa per creare un tipo complesso ed attribuirgli un nome, per poi usarlo come tipo nella dichiarazione di nuovi elementi:
+         \begin{lstlisting}
+<xs:complexType name="<complex-type>">
+	...
+</xs:complexType>
+...
+<xs:element name="<name3>" type="<complex-type>"/>
+	\end{lstlisting}
+   \end{itemize}
+   \end{frame}
+      \begin{frame}[containsverbatim]
+   \begin{itemize}
+   \item Per il tag \textcolor{lightblue}{simpleType} abbiamo mostrato l'utilizzo delle restrizioni. Con i tipi complessi la sintassi diventa:
+         \begin{lstlisting}
+<xs:complexType name="<derived-type>">
+	<xs:complexContent>
+		<xs:restriction base="<base-type>">
+			...
+		</xs:restriction>
+	</xs:complexContent>
+</xs:complexType>
+	\end{lstlisting}
+	\item Si possono inoltre estendere i tipi con una sintassi analoga:
+         \begin{lstlisting}
+<xs:complexType name="<derived-type>">
+	<xs:complexContent>
+		<xs:extension base="<base-type>">
+			...
+		</xs:extension>
+	</xs:complexContent>
+</xs:complexType>
+	\end{lstlisting}
+   \end{itemize}
+   \end{frame}
+   \subsection{Elementi Complessi}
+   \begin{frame}{Elementi Complessi}
+   Distinguiamo quattro classi di elementi complessi:
+   \begin{itemize}
+   \item Elementi vuoti
+   \item Elementi che contengono solo altri elementi
+   \item Elementi che contengono solo testo
+   \item Elementi che contengono sia testo che altri elementi
+   \end{itemize}
+   \end{frame}
+	\begin{frame}[containsverbatim]{Elementi Vuoti}
+	\begin{itemize}
+	\item Per dichiarare elementi vuoti si deve specificare un tipo complesso, e dove andrebbero dichiarati il tipo o gli elementi contenuti non si specifica nulla.\bigskip
+	\item E' auspicabile che un elemento vuoto abbia quanto meno un attributo.
+	\end{itemize}
+	\end{frame}
+	\subsubsection{Elementi Vuoti}
+	\begin{frame}[containsverbatim]
+	\begin{block}{Esempio Vuoto}
+	\begin{lstlisting}
+<xs:simpleType name="motion">
+	<xs:restriction base="xs:integer">
+		<xs:minExclusive value="0"/>
+		<xs:maxInclusive value="100"/>
+	</xs:restriction>
+</xs:simpleType>
+<xs:element name="move">
+  <xs:complexType>
+    <xs:attribute name="right" type="motion"/>
+    <xs:attribute name="left" type="motion"/>
+    <xs:attribute name="up" type="motion"/>
+    <xs:attribute name="down" type="motion"/>
+  </xs:complexType>
+</xs:element> 
+	\end{lstlisting}
+	\end{block}
+	\end{frame}
+	\subsubsection{Solo Elementi}
+	\begin{frame}{Solo Elementi}
+	\begin{itemize}
+	\item In questo caso non si fa altro che specificare gli elementi contenuti\bigskip
+	\item Per l'ordine e il numero di occorrenze si usano gli indicatori, come \textcolor{lightblue}{sequence} il cui significato verrà chiarito nel seguito.
+	\end{itemize}
+	\end{frame}
+	\begin{frame}[containsverbatim]
+	\begin{block}{Esempio Solo Elementi}
+	\begin{lstlisting}
+<xs:element name="auth">
+  <xs:complexType>
+  	<xs:sequence>
+  		<xs:element name="user" type="xs:string" />
+  		<xs:element name="base">
+  		...
+  		</xs:element>
+  		<xs:element name="password" type="pswdtype" />
+  	</xs:sequence>
+  </xs:complexType>
+</xs:element> 
+	\end{lstlisting}
+	\end{block}
+	\end{frame}
+	\subsubsection{Solo Testo}
+	\begin{frame}{Solo Testo}
+	\begin{itemize}
+	\item Il titolo \textbf{Solo Testo} può trarre in inganno: il contenuto di questo tipo di elementi non è solo di tipo \textit{xs:string}, si intende solo che non contiene altri tag.\bigskip
+	\item Risulta necessario quando si ha un elemento che contiene solo testo, ma che ha uno o più attributi.\bigskip
+	\item La sintassi è quella dell'esempio che segue, in generale vanno utilizzati \textcolor{lightblue}{extension} e \textcolor{lightblue}{restriction}, per rispettivamente, aggiungere attributi o vincolare il dominio dell'elemento.
+	\end{itemize}
+	\end{frame}
+		\begin{frame}[containsverbatim]
+	\begin{block}{Esempio Solo Testo}
+	\begin{lstlisting}
+<xs:simpleType name="engineRange">
+	<xs:restriction base="xs:integer">
+		<xs:minInclusive value="1" />
+		<xs:maxInclusive value="10" />
+	</xs:restriction>
+</xs:simpleType>
+...
+<xs:element name="run">
+  <xs:complexType>
+  	<xs:simpleContent>
+  		<xs:extension base="engineRange">
+  			<xs:attribute name="combust" type="xs:string" />
+  		</xs:extension>
+  	</xs:simpleContent>
+  </xs:complexType>
+</xs:element> 
+	\end{lstlisting}
+	\end{block}
+	\end{frame}
+	\subsubsection{Testo ed Elementi}
+	\begin{frame}[containsverbatim]{Testo ed Elementi}
+	\begin{itemize}
+	\item Un esempio potrebbe essere:
+	\begin{lstlisting}
+	<msg>
+		Dear <to>rldnjn</to>,
+		
+		dksdfb ksdbfkjsbdf kjsbkjsb kjbk
+		sdfsdfa sdfasdf asdfasdfasdf asdffsa
+		
+		Best regards,
+		<from>alnfasn</from>
+	</msg>
+	\end{lstlisting}
+	Per spedire messaggi alieni dall'astronave.
+	\item In tal caso la sintassi è identica a quella del caso con solo elementi, ma con l'aggiunta del valore booleano \textcolor{lightblue}{mixed} impostato a vero.
+	\end{itemize}
+	\end{frame}
+		\begin{frame}[containsverbatim]
+	\begin{block}{Esempio Testo ed Elementi}
+	\begin{lstlisting}
+<xs:element name="msg">
+  <xs:complexType mixed="true">
+  	<xs:sequence>
+  		<xs:element name="to" type="xs:string" />
+  		<xs:element name="from" type="xs:string" />
+  	</xs:sequence>
+  </xs:complexType>
+</xs:element> 
+	\end{lstlisting}
+	\end{block}
+	\end{frame}
+	\subsection{Indicatori}	
+	\begin{frame}{Indicatori}
+	Esistono tre gruppi di indicatori:
+	\begin{itemize}
+	\item Quelli che controllano l'ordine degli elementi:
+		\begin{itemize}
+		\item all
+		\item choice
+		\item sequence
+		\end{itemize}
+	\item Quelli che controllano il numero di occorrenze:
+		\begin{itemize}
+		\item minOccurs
+		\item maxOccurs
+		\end{itemize}
+	\item Quelli che gestiscono il raggruppamento:
+		\begin{itemize}
+		\item group
+		\item attributeGroup
+		\end{itemize}
+	\end{itemize}
+	\end{frame}
+	\subsubsection{Ordine}
+	\begin{frame}[containsverbatim]{Ordine}
+	\begin{itemize}
+	\item \textcolor{lightblue}{all} specifica che gli elementi possono apparire in qualsiasi ordine.
+	\begin{block}{Esempio All}
+	\begin{lstlisting}
+	<xs:element name="coordinates">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="E" type="coords">
+				<xs:element name="N" type="coords">
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{block}	
+	\end{itemize}
+	\end{frame}
+	\begin{frame}[containsverbatim]
+	\begin{itemize}
+	\item \textcolor{lightblue}{choice} specifica che può comparire solo uno degli elementi figli:
+	\begin{block}{Esempio Choice}
+	\begin{lstlisting}
+	<xs:element name="engine">
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="shut" type="engineRange" />
+				<xs:element name="run" type="engineRange">
+					...
+				</xs:element>				
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{block}	
+	\end{itemize}
+	\end{frame}
+	\begin{frame}[containsverbatim]
+	\begin{itemize}
+	\item \textcolor{lightblue}{sequence} specifica l'ordine in cui devono occorrere gli elementi:
+	\begin{block}{Esempio Sequence}
+	\begin{lstlisting}
+	<xs:element name="target">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="galaxy" type="xs:string" />
+				<xs:element name="planet" type="xs:string" />
+				<xs:element name="coordinates">
+				...
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{block}	
+	\end{itemize}
+	\end{frame}
+	
+	\subsubsection{Occorrenze}
+	\begin{frame}[containsverbatim]{Occorrenze}
+	\begin{itemize}
+	\item \textcolor{lightblue}{minOccurs} serve per impostare il minimo numero di occorrenze di un elemento, il valore di default è \textcolor{mauve}{1}\bigskip
+	\item \textcolor{lightblue}{maxOccurs} serve per impostare il massimo numero di occorrenze di un elemento, di default è \textcolor{mauve}{unbounded}
+	\end{itemize}
+	\end{frame}
+	\begin{frame}[containsverbatim]
+	\begin{block}{Esempio occorrenze}
+	\begin{lstlisting}
+	<xs:element name="shoot">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="target" maxOccurs="10">
+				...
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="weapon">
+			...
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{block}
+	\end{frame}
+	\subsubsection{Raggruppamento}
+	\begin{frame}[containsverbatim]{Raggruppamento}
+	\begin{itemize}
+	\item \textcolor{lightblue}{group} serve per specificare o riferire gruppi di elementi
+	\begin{lstlisting}
+	<xs:group name="<group-name>">
+		<xs:all>
+			<xs:element name="<name1>" type="<type1>"/>
+			...
+		</xs:all>
+	</xs:group>
+	\end{lstlisting}
+	\item \textcolor{lightblue}{attributeGroup} serve per specificare o riferire gruppi di attributi
+	\begin{lstlisting}
+	<xs:attributegGroup name="<attr-group-name>">
+		<xs:attribute name="<attr-name1>" type="<attr-type1>"/>
+		...
+	</xs:attributeGroup>
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}
+	
+	\subsection{Riferimenti}
+	\begin{frame}[containsverbatim]{Riferimenti}
+	Invece di dichiarare direttamente \textit{inline} elementi ed attributi si possono descrivere separatamente, e poi si può applicare un riferimento:
+	\begin{itemize}
+	\item Supponendo di aver dichiarato l'elemento \textcolor{mauve}{"<element-name>"}, si può scrivere ad esempio:
+	\begin{lstlisting}
+	<xs:element name="<some-name>">
+		<xs:complexType>
+			...
+			<xs:element ref="<element-name>" minOccurs="2"/>
+			...
+		</complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}		
+	\begin{frame}[containsverbatim]
+	\begin{itemize}
+	\item Supponendo di aver dichiarato l'attributo \textcolor{mauve}{"<attr-name>"}, si può scrivere:
+	\begin{lstlisting}
+	<xs:element name="<some-name>">
+		<xs:complexType>
+			...
+			<xs:attribute ref="<attr-name>" use="required"/>
+			...
+		</complexType>
+	</xs:element>
+	\end{lstlisting}
+	\item Supponendo di aver dichiarato il gruppo \textcolor{mauve}{"<group-name>"}, si può scrivere:
+	\begin{lstlisting}
+	<xs:element name="<some-name>">
+		<xs:complexType>
+			...
+			<xs:group ref="<group-name>" minOccurs="0"/>
+			...
+		</complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}
+	
+	\begin{frame}[containsverbatim]
+	\begin{itemize}
+	\item Supponendo di aver dichiarato il gruppo di attributi \textcolor{mauve}{"<attr-group-name>"}, si può scrivere:
+	\begin{lstlisting}
+	<xs:element name="<some-name>">
+		<xs:complexType>
+			...
+			<xs:attributeGroup ref="<attr-group-name>" use="required"/>
+			...
+		</complexType>
+	</xs:element>
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}	
+	
+	\subsection{Any}
+	\begin{frame}[containsverbatim]{Any}
+	\begin{itemize}
+	\item Il tag \textcolor{lightblue}{any} serve per dare la possibilità di inserire un qualsiasi tag, vincolando l'ordine rispetto agli altri elementi, e specificarne il numero di occorrenze.
+	\begin{lstlisting}
+	 <xs:sequence>
+      <xs:element name="<name1>" type="<type1">/>
+      <xs:element name="<name2>" type="<type2>"/>
+      <xs:any minOccurs="0"/>
+      ...
+    </xs:sequence>
+	\end{lstlisting}
+	Il tag inserito può poi essere vincolato da altri componenti specificati nello stesso file o in altri.
+	\end{itemize}
+	\end{frame}
+	\begin{frame}[containsverbatim]
+	\begin{itemize}
+	\item Analogamente, \textcolor{lightblue}{anyAttribute} serve per specificare la possibilità di inserire un qualsiasi attributo su un tag. 
+	\begin{lstlisting}
+	 <xs:complexType>
+    	<xs:sequence>
+      		...
+   		</xs:sequence>
+    	<xs:anyAttribute/>
+  	</xs:complexType>
+	\end{lstlisting}
+	\end{itemize}
+	\end{frame}
+	\subsection{Specificare gli Schemi}
+	\begin{frame}[containsverbatim]{Specificare gli Schemi}
+	Per specificare gli schemi che un documento utilizza si utilizza la seguente riga di intestazione, da inserire sul \textit{root node}:
+\begin{lstlisting}
+<commands
+xmlns="https://www.spaceship.com"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="URL-TO-SCHEMA/commands.xsd ...">
+\end{lstlisting}
+Per specificare più schemi basta scriverli come valore dell'attributo schema location, al posto dei tre puntini.
+\end{frame}
+\begin{frame}
+\begin{block}{GRAZIE!}
+La nostra eroica validazione ha protetto la terra dall'essere spazzata via, grazie!
+\end{block}
+\end{frame}
+\end{document}

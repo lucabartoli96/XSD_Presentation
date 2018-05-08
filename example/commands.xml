@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<commands xmlns="https://www.spaceship.com">
+    <auth>
+        <user degree="5"> Luis Pollo </user>
+        <base zone="B32"> Seattle </base>
+        <password>Password12</password>
+    </auth>
+    <engine>
+        <run combust="hydrogen"> 5 </run>
+    </engine>
+    <move left="1" up="4"/>
+    <shoot weapon="laser">
+        <target>
+            <galaxy>Andromeda</galaxy>
+            <planet>KELT-2Ab</planet>
+            <coordinates>
+                <E>012-29-32</E>
+                <N>41-53-24</N>
+            </coordinates>
+        </target>
+        <target>
+            <galaxy>Milky Way</galaxy>
+            <planet>Mars</planet>
+            <coordinates>
+                <N>12-4-12</N>
+                <E>90-3-16</E>
+            </coordinates>
+        </target>
+    </shoot>
+</commands>
+            

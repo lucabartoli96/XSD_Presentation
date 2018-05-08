@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		targetNamespace="https://www.spaceship.com"
+		xmlns="https://www.spaceship.com"
+		elementFormDefault="qualified">
+    
+    <!-- TYPES DECLARATIONS -->
+    
+    <xs:simpleType name="pswtype">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-zA-Z0-9]*[A-Z]+[a-zA-Z0-9]*[0-9]+[a-zA-Z0-9]*"/>
+     		<xs:minLength value="8"/>
+     	</xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="engineRange">
+	   <xs:restriction base="xs:integer">
+		  <xs:minInclusive value="1" />
+		  <xs:maxInclusive value="10" />
+	   </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="motion">
+        <xs:restriction base="xs:integer">
+		  <xs:minExclusive value="0"/>
+		  <xs:maxInclusive value="100"/>
+	   </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="coords">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([0-9]+-){2}[0-9]+" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:complexType name="moveType">
+        <xs:attribute name="right" type="motion"/>
+        <xs:attribute name="left" type="motion"/>
+        <xs:attribute name="up" type="motion"/>
+        <xs:attribute name="down" type="motion"/>
+    </xs:complexType>
+    
+    <!-- ATTRIBUTES DECLARATIONS -->
+    
+    <xs:attribute name="degree">
+        <xs:simpleType>
+            <xs:restriction base="xs:integer">
+                <xs:minInclusive value="0" />
+                <xs:maxInclusive value="5" />
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+    
+    <xs:attribute name="zone">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[A-Z][0-9]{2}" />
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+    
+    <xs:attribute name="weapon">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="laser" />
+                <xs:enumeration value="nuke" />
+                <xs:enumeration value="catapult" />
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:attribute>
+    
+    <!-- ELEMENTS DECLARATION -->
+    
+    <xs:element name="user">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute ref="degree" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="base">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute ref="zone" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="run">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="engineRange">
+                    <xs:attribute name="combust" type="xs:string" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="coordinates">
+        <xs:complexType>
+            <xs:all>
+                <xs:element name="E" type="coords" />
+                <xs:element name="N" type="coords" />
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:group name="targetDesc">
+        <xs:sequence>
+            <xs:element name="galaxy" type="xs:string" />
+            <xs:element name="planet" type="xs:string" />
+            <xs:element ref="coordinates" />
+        </xs:sequence>
+    </xs:group>
+    
+    <xs:element name="target">
+        <xs:complexType>
+            <xs:group ref="targetDesc" />
+        </xs:complexType>
+    </xs:element>
+    
+    <!-- SECOND LEVEL ELEMENTS -->
+    
+    <xs:element name="auth">
+      <xs:complexType>
+        <xs:sequence>
+            <xs:element ref="user" />
+            <xs:element ref="base" />
+            <xs:element name="password" type="pswtype" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element> 
+    
+    <xs:element name="engine">
+        <xs:complexType>
+            <xs:choice>
+                <xs:element name="shut" type="engineRange" />
+                <xs:element ref="run" />				
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="shoot">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="target" maxOccurs="10"/>
+            </xs:sequence>
+            <xs:attribute ref="weapon" />
+        </xs:complexType>
+    </xs:element>
+    
+    <!-- ROOT DECLARATION -->
+    
+    <xs:element name="commands">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="auth" />
+                <xs:element ref="engine" />
+                <xs:element name="move" type="moveType" />
+                <xs:element ref="shoot" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+</xs:schema>
